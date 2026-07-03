@@ -1,0 +1,7 @@
+package com.my.financetracker.exception;
+
+public class ResourceNotFoundException extends RuntimeException{
+    public ResourceNotFoundException(String message) {
+        super(message);
+    }
+}
