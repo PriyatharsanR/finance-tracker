@@ -21,44 +21,21 @@ public class CategoryController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public DefaultResponse<CategoryResponse> createCategory(@Valid @RequestBody CategoryRequest categoryRequest) {
-
-        return DefaultResponse.<CategoryResponse>builder()
-                .code("201")
-                .title("SUCCESS")
-                .message("Category Created successfully.")
-                .data(categoryService.createCategory(categoryRequest))
-                .build();
+        return categoryService.createCategory(categoryRequest);
     }
 
     @GetMapping
     public DefaultResponse<List<CategoryResponse>> getAllCategories() {
-
-        return DefaultResponse.<List<CategoryResponse>>builder()
-                .code("00")
-                .title("SUCCESS")
-                .message("Success")
-                .data(categoryService.getAllCategories())
-                .build();
+        return categoryService.getAllCategories();
     }
 
     @PutMapping("/{id}")
     public DefaultResponse<CategoryResponse> updateCategory(@PathVariable Long id, @Valid @RequestBody CategoryRequest request) {
-
-        return DefaultResponse.<CategoryResponse>builder()
-                .code("00")
-                .title("SUCCESS")
-                .message("Category updated successfully")
-                .data(categoryService.updateCategory(id, request))
-                .build();
+        return categoryService.updateCategory(id, request);
     }
 
     @DeleteMapping("/{id}")
     public DefaultResponse<CategoryResponse> deleteCategory(@Valid @PathVariable Long id) {
-        return DefaultResponse.<CategoryResponse>builder()
-                .code("00")
-                .title("SUCCESS")
-                .message("Category deleted successfully")
-                .data(categoryService.deleteCategory(id))
-                .build();
+        return categoryService.deleteCategory(id);
     }
 }
