@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/transactions")
@@ -30,5 +32,15 @@ public class TransactionController {
     @DeleteMapping("/{id}")
     public DefaultResponse<TransactionResponse> deleteTransaction(@PathVariable Long id) {
         return transactionService.deleteTransaction(id);
+    }
+
+    @GetMapping
+    public DefaultResponse<List<TransactionResponse>> getAllTransactions() {
+        return transactionService.getAllTransactions();
+    }
+
+    @GetMapping("/month")
+    public DefaultResponse<List<TransactionResponse>> getTransactionsByMonth(@RequestParam int year, @RequestParam int month) {
+        return transactionService.getTransactionsByMonth(year, month);
     }
 }
