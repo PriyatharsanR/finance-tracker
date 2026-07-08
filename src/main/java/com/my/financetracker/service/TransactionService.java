@@ -13,7 +13,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 @Service
@@ -190,5 +192,81 @@ public class TransactionService {
                 .createdAt(transaction.getCreatedAt())
                 .updatedAt(transaction.getUpdatedAt())
                 .build();
+    }
+
+    public DefaultResponse<List<TransactionResponse>> getAllTransactions() {
+
+        log.info("Fetching all transactions");
+
+        try {
+
+            List<TransactionResponse> transactionResponses = transactionRepository.findAll()
+                    .stream()
+                    .map(this::mapToTransactionResponse)
+                    .toList();
+
+            log.info("Found {} transactions", transactionResponses.size());
+
+            return DefaultResponse.<List<TransactionResponse>>builder()
+                    .code(ResponseUtil.SUCCESS_CODE)
+                    .title(ResponseUtil.SUCCESS)
+                    .message("Transactions fetched successfully")
+                    .data(transactionResponses)
+                    .build();
+
+        } catch (Exception e) {
+
+            log.error("Error while fetching transactions", e);
+
+            return DefaultResponse.<List<TransactionResponse>>builder()
+                    .code(ResponseUtil.INTERNAL_ERROR_CODE)
+                    .title(ResponseUtil.FAILED)
+                    .message("Unable to fetch transactions")
+                    .data(null)
+                    .build();
+        }
+    }
+
+
+    public DefaultResponse<List<TransactionResponse>> getTransactionsByMonth(int year, int month) {
+        log.info("Fetching transactions by month {}", month);
+
+        try {
+            LocalDate startDate = LocalDate.of(year, month, 1);
+            LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+
+            List<TransactionResponse> response = transactionRepository.findByTransactionDateBetween(startDate, endDate)
+                    .stream()
+                    .map(this::mapToTransactionResponse)
+                    .toList();
+
+            if (response.isEmpty()) {
+                log.info("No transactions found for year {} and month {}", year, month);
+                return DefaultResponse.<List<TransactionResponse>>builder()
+                        .code(ResponseUtil.SUCCESS_CODE)
+                        .title(ResponseUtil.SUCCESS)
+                        .message("No transaction happen for this month")
+                        .data(null)
+                        .build();
+            }
+
+            log.info("Found {} transactions by month {}", response.size(), month);
+            return DefaultResponse.<List<TransactionResponse>>builder()
+                    .code(ResponseUtil.SUCCESS_CODE)
+                    .title(ResponseUtil.SUCCESS)
+                    .message("Transactions fetched successfully")
+                    .data(response)
+                    .build();
+
+        }catch (Exception e){
+            log.error("Error while fetching transactions by month {}", month, e);
+            return DefaultResponse.<List<TransactionResponse>>builder()
+                    .code(ResponseUtil.INTERNAL_ERROR_CODE)
+                    .title(ResponseUtil.FAILED)
+                    .message("Unable to fetch transactions")
+                    .data(null)
+                    .build();
+
+        }
     }
 }
