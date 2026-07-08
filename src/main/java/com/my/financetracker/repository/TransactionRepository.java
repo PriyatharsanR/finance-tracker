@@ -9,4 +9,6 @@ import java.util.List;
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     List<Transaction>findByUserId(Long userId);
     List<Transaction> findByUserIdAndTransactionDateBetweenOrderByTransactionDateDesc(Long userId, LocalDate startDate, LocalDate endDate);
+
+    List<Transaction> findByTransactionDateBetween(LocalDate startDate, LocalDate endDate);
 }
