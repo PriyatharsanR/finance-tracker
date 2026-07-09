@@ -2,15 +2,19 @@ package com.my.financetracker.service;
 
 import com.my.financetracker.entity.Category;
 import com.my.financetracker.entity.Transaction;
+import com.my.financetracker.entity.User;
+import com.my.financetracker.exception.UnAuthorizedException;
 import com.my.financetracker.models.requests.TransactionRequest;
 import com.my.financetracker.models.responses.DefaultResponse;
 import com.my.financetracker.models.responses.TransactionResponse;
 import com.my.financetracker.repository.CategoryRepository;
 import com.my.financetracker.repository.TransactionRepository;
+import com.my.financetracker.repository.UserRepository;
 import com.my.financetracker.util.ResponseUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -24,6 +28,7 @@ import java.util.List;
 public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final CategoryRepository categoryRepository;
+    private final UserRepository userRepository;
 
     public DefaultResponse<TransactionResponse> createTransaction(@Valid TransactionRequest transactionRequest) {
         log.info("Creating transaction with amount: {}, type: {}, category: {}",
@@ -31,8 +36,9 @@ public class TransactionService {
                 transactionRequest.getType(),
                 transactionRequest.getCategoryId());
         try {
-            Category category = categoryRepository.findById(transactionRequest.getCategoryId())
-                        .orElse(null);
+            User user = getCurrentUser();
+            Category category = categoryRepository.findByIdAndUserId(transactionRequest.getCategoryId(), user.getId())
+                    .orElse(null);
 
             if (category == null) {
                 return DefaultResponse.<TransactionResponse>builder()
@@ -43,6 +49,7 @@ public class TransactionService {
             }
 
             Transaction transaction = new Transaction();
+            transaction.setUser(user);
             transaction.setTransactionDate(transactionRequest.getTransactionDate());
             transaction.setCategory(category);
             transaction.setType(transactionRequest.getType());
@@ -74,14 +81,22 @@ public class TransactionService {
         }
     }
 
+    private User getCurrentUser() {
+        String email = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+
+        return userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new UnAuthorizedException("Logged-in user not found"));
+    }
 
 
     public DefaultResponse<TransactionResponse> updateTransaction(Long id, @Valid TransactionRequest transactionRequest) {
         log.info("Updating transaction: {}", transactionRequest);
 
         try {
-
-            Transaction transaction = transactionRepository.findById(id)
+            User user = getCurrentUser();
+            Transaction transaction = transactionRepository.findByIdAndUserId(id,  user.getId())
                     .orElse(null);
 
             if (transaction == null) {
@@ -93,7 +108,7 @@ public class TransactionService {
                         .build();
             }
 
-            Category category = categoryRepository.findById(transactionRequest.getCategoryId())
+            Category category = categoryRepository.findByIdAndUserId(transactionRequest.getCategoryId(),  user.getId())
                     .orElse(null);
 
             if (category == null) {
@@ -143,8 +158,8 @@ public class TransactionService {
         log.info("Deleting transaction with id: {}", id);
 
         try {
-
-            Transaction transaction = transactionRepository.findById(id)
+            User user = getCurrentUser();
+            Transaction transaction = transactionRepository.findByIdAndUserId(id, user.getId())
                     .orElse(null);
 
             if (transaction == null) {
@@ -199,8 +214,8 @@ public class TransactionService {
         log.info("Fetching all transactions");
 
         try {
-
-            List<TransactionResponse> transactionResponses = transactionRepository.findAll()
+            User user = getCurrentUser();
+            List<TransactionResponse> transactionResponses = transactionRepository.findByUserId(user.getId())
                     .stream()
                     .map(this::mapToTransactionResponse)
                     .toList();
@@ -232,10 +247,11 @@ public class TransactionService {
         log.info("Fetching transactions by month {}", month);
 
         try {
+            User user = getCurrentUser();
             LocalDate startDate = LocalDate.of(year, month, 1);
             LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
 
-            List<TransactionResponse> response = transactionRepository.findByTransactionDateBetween(startDate, endDate)
+            List<TransactionResponse> response = transactionRepository.findByUserIdAndTransactionDateBetween(user.getId(), startDate, endDate)
                     .stream()
                     .map(this::mapToTransactionResponse)
                     .toList();

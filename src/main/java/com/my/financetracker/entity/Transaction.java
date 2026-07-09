@@ -10,7 +10,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Entity(name = "transactions")
+@Entity
+@Table(name = "transactions")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -37,7 +38,7 @@ public class Transaction {
     private BigDecimal amount;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id",  nullable = false)
     private User user;
 
     @Column(nullable = false, updatable = false)
