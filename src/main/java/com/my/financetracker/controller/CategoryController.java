@@ -35,7 +35,7 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
-    public DefaultResponse<CategoryResponse> deleteCategory(@Valid @PathVariable Long id) {
+    public DefaultResponse<Void> deleteCategory(@Valid @PathVariable Long id) {
         return categoryService.deleteCategory(id);
     }
 }

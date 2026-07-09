@@ -1,14 +1,18 @@
 package com.my.financetracker.service;
 
 import com.my.financetracker.entity.Category;
+import com.my.financetracker.entity.User;
+import com.my.financetracker.exception.UnAuthorizedException;
 import com.my.financetracker.models.requests.CategoryRequest;
 import com.my.financetracker.models.responses.CategoryResponse;
 import com.my.financetracker.models.responses.DefaultResponse;
 import com.my.financetracker.repository.CategoryRepository;
+import com.my.financetracker.repository.UserRepository;
 import com.my.financetracker.util.ResponseUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,15 +23,18 @@ import java.util.Optional;
 @Slf4j
 public class CategoryService {
     private final CategoryRepository categoryRepository;
+    private final UserRepository userRepository;
 
     public DefaultResponse<CategoryResponse> createCategory(CategoryRequest request) {
         log.info("Creating new category request {}", request);
 
         try {
-            Category existingCategory = categoryRepository.findByNameIgnoreCase(request.getName());
+            User user = getCurrentUser();
 
-            if (existingCategory != null) {
-                log.info("Category already exists {}", existingCategory.getName());
+            Optional<Category> existingCategory = categoryRepository.findByUserIdAndNameIgnoreCase(user.getId(), request.getName());
+
+            if (existingCategory.isPresent()) {
+                log.info("Category already exists : {}", existingCategory.get());
 
                 return DefaultResponse.<CategoryResponse>builder()
                         .code(ResponseUtil.DUPLICATE_RESOURCE)
@@ -40,6 +47,7 @@ public class CategoryService {
             category.setName(request.getName());
             category.setType(request.getType());
             category.setIsDefault(true);
+            category.setUser(user);
 
             Category savedCategory = categoryRepository.save(category);
             log.info("Created category {}", category);
@@ -68,20 +76,17 @@ public class CategoryService {
 
     public DefaultResponse<List<CategoryResponse>> getAllCategories() {
 
-        log.info("Getting all categories");
+        log.info("Getting all categories for this user ");
 
         try {
-            List<CategoryResponse> categoryResponses = categoryRepository.findAll()
+            User user = getCurrentUser();
+
+            List<CategoryResponse> categoryResponses = categoryRepository.findByUserId(user.getId())
                     .stream()
-                    .map(category -> CategoryResponse.builder()
-                            .id(category.getId())
-                            .name(category.getName())
-                            .type(category.getType())
-                            .active(category.getIsDefault())
-                            .build())
+                    .map(this::mapToCategoryResponse)
                     .toList();
 
-            log.info("Found {} categories", categoryResponses.size());
+            log.info("Found {} categories for user {}", categoryResponses.size(), user.getName());
 
             return DefaultResponse.<List<CategoryResponse>>builder()
                     .code(ResponseUtil.SUCCESS_CODE)
@@ -108,9 +113,9 @@ public class CategoryService {
         log.info("Updating category. id: {}", id);
 
         try {
+            User user = getCurrentUser();
 
-            Category category = categoryRepository.findById(id)
-                    .orElse(null);
+            Category category = categoryRepository.findByIdAndUserId(id, user.getId()).orElse(null);
 
             if (category == null) {
                 return DefaultResponse.<CategoryResponse>builder()
@@ -121,7 +126,7 @@ public class CategoryService {
                         .build();
             }
 
-            Optional<Category> existingCategory = categoryRepository.findByNameIgnoreCaseAndIdNot(request.getName(), id);
+            Optional<Category> existingCategory = categoryRepository.findByUserIdAndNameIgnoreCaseAndIdNot(user.getId(), request.getName(), id);
 
             if (existingCategory.isPresent()) {
                 return DefaultResponse.<CategoryResponse>builder()
@@ -160,17 +165,16 @@ public class CategoryService {
     }
 
 
-    public DefaultResponse<CategoryResponse> deleteCategory(Long id) {
+    public DefaultResponse<Void> deleteCategory(Long id) {
 
         log.info("Deleting category. id: {}", id);
 
         try {
-
-            Category category = categoryRepository.findById(id)
-                    .orElse(null);
+            User logUser = getCurrentUser();
+            Category category = categoryRepository.findByIdAndUserId(id, logUser.getId()).orElse(null);
 
             if (category == null) {
-                return DefaultResponse.<CategoryResponse>builder()
+                return DefaultResponse.<Void>builder()
                         .code(ResponseUtil.NOT_FOUND_CODE)
                         .title(ResponseUtil.FAILED)
                         .message("Category not found")
@@ -182,7 +186,7 @@ public class CategoryService {
 
             log.info("Category deleted successfully. id: {}", id);
 
-            return DefaultResponse.<CategoryResponse>builder()
+            return DefaultResponse.<Void>builder()
                     .code(ResponseUtil.SUCCESS_CODE)
                     .title(ResponseUtil.SUCCESS)
                     .message("Category deleted successfully")
@@ -193,7 +197,7 @@ public class CategoryService {
 
             log.error("Error while deleting category. id: {}", id, e);
 
-            return DefaultResponse.<CategoryResponse>builder()
+            return DefaultResponse.<Void>builder()
                     .code(ResponseUtil.INTERNAL_ERROR_CODE)
                     .title(ResponseUtil.FAILED)
                     .message("Unable to delete category")
@@ -210,5 +214,10 @@ public class CategoryService {
                 .type(category.getType())
                 .active(category.getIsDefault())
                 .build();
+    }
+
+    private User getCurrentUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmailIgnoreCase(email).orElseThrow(() -> new UnAuthorizedException("User not found"));
     }
 }
