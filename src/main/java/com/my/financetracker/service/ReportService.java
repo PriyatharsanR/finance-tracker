@@ -33,7 +33,7 @@ public class ReportService {
         log.info("Generate yearly report. year={}", year);
 
         try {
-            if (year < 2025 || year > LocalDate.now().getYear() + 1) {
+            if (year < 2025 || year > LocalDate.now().getYear()) {
                 return DefaultResponse.<List<MonthlyReportResponse>>builder()
                         .code(ResponseUtil.FAILED_CODE)
                         .title(ResponseUtil.FAILED)
