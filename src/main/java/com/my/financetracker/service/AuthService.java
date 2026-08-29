@@ -1,11 +1,14 @@
 package com.my.financetracker.service;
 
+import com.my.financetracker.entity.Category;
 import com.my.financetracker.entity.User;
 import com.my.financetracker.enums.Role;
+import com.my.financetracker.enums.TransactionType;
 import com.my.financetracker.models.requests.LoginRequest;
 import com.my.financetracker.models.requests.RegisterRequest;
 import com.my.financetracker.models.responses.AuthResponse;
 import com.my.financetracker.models.responses.DefaultResponse;
+import com.my.financetracker.repository.CategoryRepository;
 import com.my.financetracker.repository.UserRepository;
 import com.my.financetracker.security.JwtService;
 import com.my.financetracker.util.ResponseUtil;
@@ -19,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +30,7 @@ import java.time.LocalDateTime;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
@@ -51,6 +56,8 @@ public class AuthService {
             user.setUpdatedAt(LocalDateTime.now());
 
             User savedUser = userRepository.save(user);
+
+            createDefaultCategories(savedUser);
 
             String token = jwtService.generateToken(savedUser.getEmail());
 
@@ -79,6 +86,19 @@ public class AuthService {
         }
     }
 
+    private void createDefaultCategories(User user) {
+        List<Category> defaultCategories = List.of(
+                new Category(null, "Housing", TransactionType.EXPENSE, user, true),
+                new Category(null, "Food & Dining", TransactionType.EXPENSE, user, true),
+                new Category(null, "Salary", TransactionType.INCOME, user, true),
+                new Category(null, "Transport", TransactionType.EXPENSE, user, true),
+                new Category(null, "Utilities", TransactionType.EXPENSE, user, true),
+                new Category(null, "Freelance", TransactionType.INCOME, user, true),
+                new Category(null, "Subscriptions", TransactionType.EXPENSE, user, true),
+                new Category(null, "Healthcare", TransactionType.EXPENSE, user, true)
+        );
+        categoryRepository.saveAll(defaultCategories);
+    }
 
     public DefaultResponse<AuthResponse> login(@Valid LoginRequest request) {
         log.info("Login request for email : {}", request.getEmail());

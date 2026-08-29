@@ -34,7 +34,12 @@ public class DashboardService {
         try {
             User user = getCurrentUser();
 
-            List<Transaction> transactions = transactionRepository.findByUserId(user.getId());
+            int currentYear = LocalDate.now().getYear();
+
+            List<Transaction> transactions = transactionRepository.findByUserId(user.getId())
+                    .stream()
+                    .filter(t -> t.getTransactionDate().getYear() == currentYear)
+                    .toList();
 
             BigDecimal totalIncome = calculateTotalByType(transactions, TransactionType.INCOME);
 
@@ -43,7 +48,6 @@ public class DashboardService {
             BigDecimal currentBalance = totalIncome.subtract(totalExpense);
 
             LocalDate currentDate = LocalDate.now();
-            int currentYear = currentDate.getYear();
             int currentMonth = currentDate.getMonthValue();
 
             List<Transaction> currentMonthTransactions = transactions.stream()

@@ -46,7 +46,7 @@ public class CategoryService {
             Category category = new Category();
             category.setName(request.getName());
             category.setType(request.getType());
-            category.setIsDefault(true);
+            category.setIsDefault(false);
             category.setUser(user);
 
             Category savedCategory = categoryRepository.save(category);
@@ -81,8 +81,26 @@ public class CategoryService {
         try {
             User user = getCurrentUser();
 
-            List<CategoryResponse> categoryResponses = categoryRepository.findByUserId(user.getId())
-                    .stream()
+            List<Category> userCategories = categoryRepository.findByUserId(user.getId());
+
+            boolean hasDefaults = userCategories.stream().anyMatch(c -> Boolean.TRUE.equals(c.getIsDefault()));
+            if (!hasDefaults) {
+                log.info("Legacy user with no default categories found. Seeding now.");
+                List<Category> defaultCategories = List.of(
+                        new Category(null, "Housing", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                        new Category(null, "Food & Dining", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                        new Category(null, "Salary", com.my.financetracker.enums.TransactionType.INCOME, user, true),
+                        new Category(null, "Transport", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                        new Category(null, "Utilities", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                        new Category(null, "Freelance", com.my.financetracker.enums.TransactionType.INCOME, user, true),
+                        new Category(null, "Subscriptions", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                        new Category(null, "Healthcare", com.my.financetracker.enums.TransactionType.EXPENSE, user, true)
+                );
+                categoryRepository.saveAll(defaultCategories);
+                userCategories.addAll(defaultCategories);
+            }
+
+            List<CategoryResponse> categoryResponses = userCategories.stream()
                     .map(this::mapToCategoryResponse)
                     .toList();
 
@@ -212,7 +230,7 @@ public class CategoryService {
                 .id(category.getId())
                 .name(category.getName())
                 .type(category.getType())
-                .active(category.getIsDefault())
+                .active(true)
                 .build();
     }
 
