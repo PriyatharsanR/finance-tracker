@@ -87,14 +87,23 @@ public class CategoryService {
             if (!hasDefaults) {
                 log.info("Legacy user with no default categories found. Seeding now.");
                 List<Category> defaultCategories = List.of(
-                        new Category(null, "Housing", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
-                        new Category(null, "Food & Dining", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
-                        new Category(null, "Salary", com.my.financetracker.enums.TransactionType.INCOME, user, true),
-                        new Category(null, "Transport", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
-                        new Category(null, "Utilities", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
-                        new Category(null, "Freelance", com.my.financetracker.enums.TransactionType.INCOME, user, true),
-                        new Category(null, "Subscriptions", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
-                        new Category(null, "Healthcare", com.my.financetracker.enums.TransactionType.EXPENSE, user, true)
+                        new Category(null, "Work Revenue", com.my.financetracker.enums.TransactionType.INCOME, user, true),
+                        new Category(null, "Home Revenue", com.my.financetracker.enums.TransactionType.INCOME, user, true),
+                        new Category(null, "Scholarships Revenue", com.my.financetracker.enums.TransactionType.INCOME, user, true),
+                        new Category(null, "Bursary Revenue", com.my.financetracker.enums.TransactionType.INCOME, user, true),
+                        new Category(null, "Other Revenue", com.my.financetracker.enums.TransactionType.INCOME, user, true),
+                        
+                        new Category(null, "Food Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                        new Category(null, "Stationery Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                        new Category(null, "Bordim Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                        new Category(null, "Travel Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                        new Category(null, "Clothing Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                        new Category(null, "Entertainment Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                        new Category(null, "Beauty Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                        new Category(null, "Essential Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                        new Category(null, "Uni Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                        new Category(null, "Medical Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                        new Category(null, "Other Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true)
                 );
                 categoryRepository.saveAll(defaultCategories);
                 userCategories.addAll(defaultCategories);

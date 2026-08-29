@@ -88,14 +88,23 @@ public class AuthService {
 
     private void createDefaultCategories(User user) {
         List<Category> defaultCategories = List.of(
-                new Category(null, "Housing", TransactionType.EXPENSE, user, true),
-                new Category(null, "Food & Dining", TransactionType.EXPENSE, user, true),
-                new Category(null, "Salary", TransactionType.INCOME, user, true),
-                new Category(null, "Transport", TransactionType.EXPENSE, user, true),
-                new Category(null, "Utilities", TransactionType.EXPENSE, user, true),
-                new Category(null, "Freelance", TransactionType.INCOME, user, true),
-                new Category(null, "Subscriptions", TransactionType.EXPENSE, user, true),
-                new Category(null, "Healthcare", TransactionType.EXPENSE, user, true)
+                new Category(null, "Work Revenue", com.my.financetracker.enums.TransactionType.INCOME, user, true),
+                new Category(null, "Home Revenue", com.my.financetracker.enums.TransactionType.INCOME, user, true),
+                new Category(null, "Scholarships Revenue", com.my.financetracker.enums.TransactionType.INCOME, user, true),
+                new Category(null, "Bursary Revenue", com.my.financetracker.enums.TransactionType.INCOME, user, true),
+                new Category(null, "Other Revenue", com.my.financetracker.enums.TransactionType.INCOME, user, true),
+                
+                new Category(null, "Food Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                new Category(null, "Stationery Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                new Category(null, "Bordim Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                new Category(null, "Travel Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                new Category(null, "Clothing Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                new Category(null, "Entertainment Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                new Category(null, "Beauty Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                new Category(null, "Essential Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                new Category(null, "Uni Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                new Category(null, "Medical Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                new Category(null, "Other Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true)
         );
         categoryRepository.saveAll(defaultCategories);
     }
