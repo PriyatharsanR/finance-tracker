@@ -1,11 +1,14 @@
 package com.my.financetracker.service;
 
+import com.my.financetracker.entity.Category;
 import com.my.financetracker.entity.User;
 import com.my.financetracker.enums.Role;
+import com.my.financetracker.enums.TransactionType;
 import com.my.financetracker.models.requests.LoginRequest;
 import com.my.financetracker.models.requests.RegisterRequest;
 import com.my.financetracker.models.responses.AuthResponse;
 import com.my.financetracker.models.responses.DefaultResponse;
+import com.my.financetracker.repository.CategoryRepository;
 import com.my.financetracker.repository.UserRepository;
 import com.my.financetracker.security.JwtService;
 import com.my.financetracker.util.ResponseUtil;
@@ -19,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +30,7 @@ import java.time.LocalDateTime;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
@@ -51,6 +56,8 @@ public class AuthService {
             user.setUpdatedAt(LocalDateTime.now());
 
             User savedUser = userRepository.save(user);
+
+            createDefaultCategories(savedUser);
 
             String token = jwtService.generateToken(savedUser.getEmail());
 
@@ -79,6 +86,28 @@ public class AuthService {
         }
     }
 
+    private void createDefaultCategories(User user) {
+        List<Category> defaultCategories = List.of(
+                new Category(null, "Work Revenue", com.my.financetracker.enums.TransactionType.INCOME, user, true),
+                new Category(null, "Home Revenue", com.my.financetracker.enums.TransactionType.INCOME, user, true),
+                new Category(null, "Scholarships Revenue", com.my.financetracker.enums.TransactionType.INCOME, user, true),
+                new Category(null, "Bursary Revenue", com.my.financetracker.enums.TransactionType.INCOME, user, true),
+                new Category(null, "Other Revenue", com.my.financetracker.enums.TransactionType.INCOME, user, true),
+                
+                new Category(null, "Food Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                new Category(null, "Stationery Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                new Category(null, "Bordim Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                new Category(null, "Travel Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                new Category(null, "Clothing Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                new Category(null, "Entertainment Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                new Category(null, "Beauty Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                new Category(null, "Essential Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                new Category(null, "Uni Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                new Category(null, "Medical Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                new Category(null, "Other Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true)
+        );
+        categoryRepository.saveAll(defaultCategories);
+    }
 
     public DefaultResponse<AuthResponse> login(@Valid LoginRequest request) {
         log.info("Login request for email : {}", request.getEmail());

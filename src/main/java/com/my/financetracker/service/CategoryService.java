@@ -46,7 +46,7 @@ public class CategoryService {
             Category category = new Category();
             category.setName(request.getName());
             category.setType(request.getType());
-            category.setIsDefault(true);
+            category.setIsDefault(false);
             category.setUser(user);
 
             Category savedCategory = categoryRepository.save(category);
@@ -81,8 +81,35 @@ public class CategoryService {
         try {
             User user = getCurrentUser();
 
-            List<CategoryResponse> categoryResponses = categoryRepository.findByUserId(user.getId())
-                    .stream()
+            List<Category> userCategories = categoryRepository.findByUserId(user.getId());
+
+            boolean hasDefaults = userCategories.stream().anyMatch(c -> Boolean.TRUE.equals(c.getIsDefault()));
+            if (!hasDefaults) {
+                log.info("Legacy user with no default categories found. Seeding now.");
+                List<Category> defaultCategories = List.of(
+                        new Category(null, "Work Revenue", com.my.financetracker.enums.TransactionType.INCOME, user, true),
+                        new Category(null, "Home Revenue", com.my.financetracker.enums.TransactionType.INCOME, user, true),
+                        new Category(null, "Scholarships Revenue", com.my.financetracker.enums.TransactionType.INCOME, user, true),
+                        new Category(null, "Bursary Revenue", com.my.financetracker.enums.TransactionType.INCOME, user, true),
+                        new Category(null, "Other Revenue", com.my.financetracker.enums.TransactionType.INCOME, user, true),
+                        
+                        new Category(null, "Food Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                        new Category(null, "Stationery Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                        new Category(null, "Bordim Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                        new Category(null, "Travel Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                        new Category(null, "Clothing Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                        new Category(null, "Entertainment Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                        new Category(null, "Beauty Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                        new Category(null, "Essential Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                        new Category(null, "Uni Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                        new Category(null, "Medical Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true),
+                        new Category(null, "Other Expense", com.my.financetracker.enums.TransactionType.EXPENSE, user, true)
+                );
+                categoryRepository.saveAll(defaultCategories);
+                userCategories.addAll(defaultCategories);
+            }
+
+            List<CategoryResponse> categoryResponses = userCategories.stream()
                     .map(this::mapToCategoryResponse)
                     .toList();
 
@@ -212,7 +239,7 @@ public class CategoryService {
                 .id(category.getId())
                 .name(category.getName())
                 .type(category.getType())
-                .active(category.getIsDefault())
+                .active(true)
                 .build();
     }
 
