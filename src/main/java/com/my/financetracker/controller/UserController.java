@@ -1,5 +1,6 @@
 package com.my.financetracker.controller;
 
+import com.my.financetracker.models.requests.UpdateProfileRequest;
 import com.my.financetracker.models.responses.DefaultResponse;
 import com.my.financetracker.models.responses.UserResponse;
 import com.my.financetracker.service.UserService;
@@ -16,5 +17,10 @@ public class UserController {
     @GetMapping("/me")
     public DefaultResponse<UserResponse> getCurrentUserProfile() {
         return userService.getCurrentUserProfile();
+    }
+
+    @PutMapping("/me/profile")
+    public DefaultResponse<UserResponse> updateCurrentUserProfile(@RequestBody UpdateProfileRequest request) {
+        return userService.updateCurrentUserProfile(request);
     }
 }

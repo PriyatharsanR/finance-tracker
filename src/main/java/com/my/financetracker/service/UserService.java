@@ -43,6 +43,44 @@ public class UserService {
         }
     }
 
+    public DefaultResponse<UserResponse> updateCurrentUserProfile(com.my.financetracker.models.requests.UpdateProfileRequest request) {
+        log.info("Updating current user profile");
+        try {
+            User user = getCurrentUser();
+            
+            // Just basic fallback logic for email uniqueness. Proper way is returning a Bad Request if email exists
+            if (!user.getEmail().equalsIgnoreCase(request.getEmail()) && userRepository.findByEmailIgnoreCase(request.getEmail()).isPresent()) {
+                return DefaultResponse.<UserResponse>builder()
+                        .code(ResponseUtil.INTERNAL_ERROR_CODE)
+                        .title(ResponseUtil.FAILED)
+                        .message("Email is already in use by another account")
+                        .data(null)
+                        .build();
+            }
+
+            user.setName(request.getName());
+            user.setEmail(request.getEmail());
+            userRepository.save(user);
+
+            return DefaultResponse.<UserResponse>builder()
+                    .code(ResponseUtil.SUCCESS_CODE)
+                    .title(ResponseUtil.SUCCESS)
+                    .message("User profile updated successfully")
+                    .data(mapToUserResponse(user))
+                    .build();
+
+        } catch (Exception e) {
+            log.error("Error while updating user profile", e);
+
+            return DefaultResponse.<UserResponse>builder()
+                    .code(ResponseUtil.INTERNAL_ERROR_CODE)
+                    .title(ResponseUtil.FAILED)
+                    .message("Unable to update user profile")
+                    .data(null)
+                    .build();
+        }
+    }
+
     private User getCurrentUser() {
 
         String email = SecurityContextHolder.getContext()
@@ -60,6 +98,7 @@ public class UserService {
                 .name(user.getName())
                 .email(user.getEmail())
                 .role(user.getRole())
+                .createdAt(user.getCreatedAt())
                 .build();
     }
 }
